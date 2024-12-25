@@ -5,9 +5,7 @@ using Unity.Services.Authentication;   // AuthenticationService
 using Unity.Services.CloudSave;
 using Unity.Services.CloudSave.Models;
 using Unity.Services.Core;             // UnityServices
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 using System.Linq;
 
 public class DatabaseManager : MonoBehaviour {
@@ -41,6 +39,7 @@ public class DatabaseManager : MonoBehaviour {
 
 
     public static async Task<Dictionary<string, Item>> LoadData(params string[] args) {
+        Debug.Log($"LoadData {string.Join(',',args)}");
         HashSet<string> keys = new HashSet<string>(args);
         Dictionary<string, Item> playerData = await CloudSaveService.Instance.Data.Player.LoadAsync(keys);
         Debug.Log($"loaded player data: {string.Join(',', playerData)}");

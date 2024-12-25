@@ -2,6 +2,9 @@ using TMPro;
 using Unity.Services.Authentication;
 using UnityEngine;
 
+/**
+ * Saves the score of a single user
+ */
 public class Score : MonoBehaviour { 
     [SerializeField] TextMeshProUGUI textField;
 
