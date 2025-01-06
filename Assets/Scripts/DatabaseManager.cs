@@ -8,21 +8,7 @@ using Unity.Services.Core;             // UnityServices
 using UnityEngine;
 using System.Linq;
 
-public class DatabaseManager : MonoBehaviour {
-
-    // Initializing the Unity Services SDK: https://docs.unity.com/ugs/en-us/manual/authentication/manual/get-started
-    async void Awake() {
-        await UnityServices.InitializeAsync();
-
-        if (AuthenticationService.Instance.IsSignedIn) {
-            Debug.Log("Player is already signed in");
-        } else {
-            Debug.Log("Player is not signed in yet - signing in anonymously");
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-        }
-        Debug.Log($"Signed in as player id: {AuthenticationService.Instance.PlayerId} Access Token: {AuthenticationService.Instance.AccessToken}");
-    }
-
+public class DatabaseManager  {
     // Sample code from https://docs.unity.com/ugs/manual/cloud-save/manual/tutorials/unity-sdk
 
     public static async Task<Dictionary<string, string>> SaveData(params (string key, object value)[] kwargs) {
