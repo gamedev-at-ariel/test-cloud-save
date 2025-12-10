@@ -16,18 +16,19 @@ public class ScoreOfUser: MonoBehaviour {
 
     string username;
     Dictionary<string, object> userdata = null;
-    int score = -1;
+    int score = -1; // not initialized
+
     private void Awake() {
         enabled = false;
     }
 
-    public async void Initialize() {
-        if (!AuthenticationService.Instance.IsSignedIn)
-            return;
+    public async void Initialize() {  // This is NOT called at sign-in - it is called after the user clicks "submit"
+        if (!AuthenticationService.Instance.IsSignedIn) return;
+
         username = usernameField.text;
         //Debug.Log($"username={username} len={username.Length}");
 
-        await LoadUserData();
+        userdata = await LoadUserData(username);
         if (userdata.ContainsKey("score")) {
             //Debug.Log("userdata[score] is of type " + userdata["score"].GetType().Name);
             score = Convert.ToInt32(userdata["score"]);
@@ -45,31 +46,24 @@ public class ScoreOfUser: MonoBehaviour {
         scoreField.text = "Score: " + newscore;
     }
 
-    public async Task LoadUserData() {
-        //var playerData = await DatabaseManager.LoadData(username);
-        if (!AuthenticationService.Instance.IsSignedIn) return;
-        Debug.Log("LoadUserData for username=" + username);
-        var keys = new HashSet<string> { username };
-        //Debug.Log("keys=" + string.Join(",",keys));
-        var playerData = await CloudSaveService.Instance.Data.Player.LoadAsync(keys);
+    public async Task<Dictionary<string, object>> LoadUserData(string username) {
+        var playerData = await DatabaseManager.LoadData(username);
 
         if (playerData.TryGetValue(username, out var userdataItem)) {
-            userdata = userdataItem.Value.GetAs<Dictionary<string,object>>();
+            var userdata = userdataItem.Value.GetAs<Dictionary<string,object>>();
             Debug.Log($"loaded user data: {userdata}");
+            return userdata;
         } else {
-            userdata = new Dictionary<string, object>();
+            var userdata = new Dictionary<string, object>();
             Debug.Log($"no user data - initializing to empty dictionary");
+            return userdata;
         }
-    }
-
-    public async Task SaveUserData() {
-        await DatabaseManager.SaveData((username, userdata));
     }
 
     public async void IncreaseScore() {
         if (enabled) {
             SetScore(score + 1);
-            await SaveUserData();
+            await DatabaseManager.SaveData((username, userdata));
         }
     }
 

@@ -608,7 +608,7 @@ GameObject:
   - component: {fileID: 1195384096}
   - component: {fileID: 1195384095}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: AuthenticationManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
