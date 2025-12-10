@@ -3,24 +3,34 @@ using Unity.Services.Authentication;
 using UnityEngine;
 
 /**
- * Saves the score of a single user
+ * Saves the score of an anonymous user
  */
 public class Score : MonoBehaviour { 
     [SerializeField] TextMeshProUGUI textField;
 
     private int score = -1;   // not initialized
 
-    void SetScore(int newscore) {
-        score = newscore;
-        textField.text = "Score: " + score;
+
+    /* Initialization */
+    void Start()
+    {
+        enabled = false;
+        AuthenticationService.Instance.SignedIn += OnSignedIn;
     }
 
-    void Start() {
-        enabled = false;
-        AuthenticationService.Instance.SignedIn += async () => {
-            SetScore(await DatabaseManager.LoadScore());
-            enabled = true; 
-        };
+    async void OnSignedIn() {
+        int loadedScore = await DatabaseManager.LoadScore();
+        SetScore(loadedScore);
+        enabled = true;
+    }
+
+
+    /* Changing the score */
+
+    void SetScore(int newscore)
+    {
+        score = newscore;
+        textField.text = "Score: " + score;
     }
 
     public async void IncreaseScore() {
