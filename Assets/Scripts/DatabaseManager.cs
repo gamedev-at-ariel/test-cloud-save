@@ -8,6 +8,9 @@ using Unity.Services.Core;             // UnityServices
 using UnityEngine;
 using System.Linq;
 
+/*
+ * This class manages loading and saving key-value pairs in the CloudSaveService.
+ */
 public class DatabaseManager  {
     // Sample code from https://docs.unity.com/ugs/manual/cloud-save/manual/tutorials/unity-sdk
 
