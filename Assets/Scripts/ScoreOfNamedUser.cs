@@ -18,7 +18,7 @@ public class ScoreOfNamedUser: MonoBehaviour {
     Dictionary<string, object> userdata = null;
     int score = -1; // not initialized
 
-    private void Awake() {
+    private void Start() {
         enabled = false;
     }
 

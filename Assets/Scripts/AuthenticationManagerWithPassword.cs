@@ -40,17 +40,14 @@ public class AuthenticationManagerWithPassword : MonoBehaviour {
     /**
      * Sign in an existing user with username and password
      */
-    public async Task<bool> SignInWithUsernamePassword(string username, string password) {
+    public async Task<string> SignInWithUsernamePassword(string username, string password) {
         try {
             await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
-            Debug.Log($"SignIn successful! Player ID: {AuthenticationService.Instance.PlayerId}");
-            return true;
+            return $"SignIn successful! Player ID: {AuthenticationService.Instance.PlayerId}";
         } catch (AuthenticationException ex) {
-            Debug.LogError($"SignIn failed: {ex.Message}");
-            return false;
+            return $"SignIn failed: {ex.Message}";
         } catch (RequestFailedException ex) {
-            Debug.LogError($"SignIn request failed: {ex.Message}");
-            return false;
+            return $"SignIn request failed: {ex.Message}";
         }
     }
 
