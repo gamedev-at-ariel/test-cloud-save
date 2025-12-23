@@ -12,18 +12,12 @@ public class ScoreOfAnonymousUser : MonoBehaviour {
 
     private int score = -1;   // not initialized
 
-    private void Awake()
+    private void Start()
     {
-        enabled = false;
+        enabled = false;  
+        AuthenticationService.Instance.SignedIn += Initialize;   // this cannot be done in Awake, ad the Instance might not exist yet
     }
 
-
-    /* Initialization */
-    void Start()
-    {
-        enabled = false;
-        AuthenticationService.Instance.SignedIn += Initialize;
-    }
 
     async void Initialize() {
         int loadedScore;
@@ -52,6 +46,7 @@ public class ScoreOfAnonymousUser : MonoBehaviour {
     }
 
     public async void IncreaseScore() {
+        Debug.Log($"IncreaseScore: enabled={enabled}");
         if (enabled) {
             SetScore(score + 1);
             await DatabaseManager.SaveData(("score", score));

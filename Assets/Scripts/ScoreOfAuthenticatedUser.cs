@@ -1,57 +1,35 @@
 using TMPro;
 using Unity.Services.Authentication;
 using UnityEngine;
-using System.Collections.Generic;
 
 
 /**
- * Saves the scores of all users using username+password authentication
+ * Handles username+password authentication and delegates score management to ScoreOfNamedUser
  */
-public class Scores : MonoBehaviour {
+public class ScoreOfAuthenticatedUser : MonoBehaviour {
     [SerializeField] TMP_InputField usernameInputField;
     [SerializeField] TMP_InputField passwordInputField;
-    [SerializeField] TextMeshProUGUI textField;
     [SerializeField] TextMeshProUGUI statusField;
     [SerializeField] GameObject signInPanel;
     [SerializeField] GameObject gamePanel;
+    [SerializeField] ScoreOfNamedUser scoreManager;
 
-    private Dictionary<string, int> scores;
     private AuthenticationManagerWithPassword authManager;
-
-    void SetScore(int newscore) {
-        var username = usernameInputField.text;
-        scores[username] = newscore;
-        textField.text = "Score: " + newscore;
-    }
 
     void Start() {
         authManager = FindAnyObjectByType<AuthenticationManagerWithPassword>();
-        enabled = false;
 
         // Show sign-in panel, hide game panel initially
         if (signInPanel != null) signInPanel.SetActive(true);
         if (gamePanel != null) gamePanel.SetActive(false);
 
-        AuthenticationService.Instance.SignedIn += async () => {
-            enabled = true;
-
+        AuthenticationService.Instance.SignedIn += () => {
             // Hide sign-in panel, show game panel
             if (signInPanel != null) signInPanel.SetActive(false);
             if (gamePanel != null) gamePanel.SetActive(true);
 
-            var playerData = await DatabaseManager.LoadData("scores");
-            if (playerData.TryGetValue("scores", out var scoresVar)) {
-                scores = scoresVar.Value.GetAs< Dictionary<string,int> >();
-                Debug.Log($"loaded scores value: {scores}");
-            } else {
-                scores = new();
-                Debug.Log($"no score value - initializing");
-            }
-            var username = usernameInputField.text;
-            if (!scores.ContainsKey(username)) {
-                scores[username] = 0;
-            }
-            SetScore(scores[username]);
+            // Initialize the score manager with the current username
+            scoreManager.Initialize();
         };
     }
 
@@ -91,11 +69,8 @@ public class Scores : MonoBehaviour {
         }
     }
 
-    public async void IncreaseScore() {
-        if (enabled) {
-            var username = usernameInputField.text;
-            SetScore(scores[username] + 1);
-            await DatabaseManager.SaveData(("scores", scores));
-        }
+    public void IncreaseScore() {
+        // Delegate to ScoreOfNamedUser
+        scoreManager.IncreaseScore();
     }
 }
