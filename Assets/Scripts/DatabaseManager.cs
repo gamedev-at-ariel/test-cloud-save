@@ -22,10 +22,6 @@ public class DatabaseManager  {
         return result;
     }
 
-    public static async Task<Dictionary<string, string>> SaveScore(int score) {
-        return await SaveData(("score", score));
-    }
-
 
     public static async Task<Dictionary<string, Item>> LoadData(params string[] args) {
         Debug.Log($"LoadData {string.Join(',',args)}");
@@ -36,18 +32,5 @@ public class DatabaseManager  {
     }
 
 
-    public static async Task<int> LoadScore() {
-        var playerData = await LoadData("score");
-
-        int score;
-        if (playerData.TryGetValue("score", out var scoreVar)) {
-            score = scoreVar.Value.GetAs<int>();
-            Debug.Log($"loaded score value: {score}");
-        } else {
-            score = 0;
-            Debug.Log($"no score value - initializing to {score}");
-        }
-        return score;
-    }
 
 }

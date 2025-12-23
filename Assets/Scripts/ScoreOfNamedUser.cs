@@ -10,7 +10,7 @@ using UnityEngine.UI;
 /**
  * Saves the score of a single user
  */
-public class ScoreOfUser: MonoBehaviour {
+public class ScoreOfNamedUser: MonoBehaviour {
     [SerializeField] TMP_Text scoreField;
     [SerializeField] TMP_InputField usernameField;
 
@@ -23,20 +23,23 @@ public class ScoreOfUser: MonoBehaviour {
     }
 
     public async void Initialize() {  // This is NOT called at sign-in - it is called after the user clicks "submit"
-        if (!AuthenticationService.Instance.IsSignedIn) return;
+        if (!AuthenticationService.Instance.IsSignedIn) {
+            Debug.LogError("Not signed in to AuthenticationService!");
+            return;
+        }
 
         username = usernameField.text;
         //Debug.Log($"username={username} len={username.Length}");
 
         userdata = await LoadUserData(username);
+        int loadedScore;
         if (userdata.ContainsKey("score")) {
             //Debug.Log("userdata[score] is of type " + userdata["score"].GetType().Name);
-            score = Convert.ToInt32(userdata["score"]);
-        } else { 
-            score = 0;
+            loadedScore = Convert.ToInt32(userdata["score"]);
+        } else {
+            loadedScore = 0;
         }
-        scoreField.text = "Score: " + score;
-
+        SetScore(loadedScore);
         gameObject.SetActive(true);
         enabled = true;
     }

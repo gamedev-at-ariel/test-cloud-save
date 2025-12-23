@@ -15,7 +15,7 @@ public class AuthenticationManager: MonoBehaviour {
         await UnityServices.InitializeAsync();
 
         if (AuthenticationService.Instance.IsSignedIn) {
-            Debug.Log("Player is already signed in");
+            Debug.Log($"Player is already signed in as: {AuthenticationService.Instance.PlayerId}");
         } else {
             Debug.Log("Player is not signed in yet - signing in anonymously");
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
