@@ -19,7 +19,9 @@ public class ScoreOfNamedUser: MonoBehaviour {
     int score = -1; // not initialized
 
     private void Start() {
-        enabled = false;
+        if (!AuthenticationService.Instance.IsSignedIn) {
+            enabled = false;
+        }
     }
 
     public async void Initialize() {  // This is NOT called at sign-in - it is called after the user clicks "submit"
@@ -29,7 +31,7 @@ public class ScoreOfNamedUser: MonoBehaviour {
         }
 
         username = usernameField.text;
-        //Debug.Log($"username={username} len={username.Length}");
+        Debug.Log($"ScoreOfNamedUser.Initialize: username='{username}'");
 
         userdata = await LoadUserData(username);
         int loadedScore;
@@ -64,8 +66,10 @@ public class ScoreOfNamedUser: MonoBehaviour {
     }
 
     public async void IncreaseScore() {
+        Debug.Log($"ScoreOfNamedUser.IncreaseScore: enabled='{enabled}'");
         if (enabled) {
             SetScore(score + 1);
+            Debug.Log($"ScoreOfNamedUser.IncreaseScore: score='{score}'");
             await DatabaseManager.SaveData((username, userdata));
         }
     }
