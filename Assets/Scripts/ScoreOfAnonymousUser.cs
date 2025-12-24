@@ -14,12 +14,19 @@ public class ScoreOfAnonymousUser : MonoBehaviour {
 
     private void Start()
     {
-        enabled = false;  
-        AuthenticationService.Instance.SignedIn += Initialize;   // this cannot be done in Awake, ad the Instance might not exist yet
+        Debug.Log("ScoreOfAnonymousUser Start");
+        // this cannot be done in Awake, as the Instance might not exist yet
+        if (AuthenticationService.Instance.IsSignedIn) {
+            Initialize();
+        } else {
+            enabled = false;
+            AuthenticationService.Instance.SignedIn += Initialize;   
+        }
     }
 
 
     async void Initialize() {
+        Debug.Log("ScoreOfAnonymousUser Initialize");
         int loadedScore;
         var scoreData = await DatabaseManager.LoadData("score");
         if (scoreData.TryGetValue("score", out var scoreVar))

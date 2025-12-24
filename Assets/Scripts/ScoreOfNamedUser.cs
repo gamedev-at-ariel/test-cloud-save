@@ -19,12 +19,14 @@ public class ScoreOfNamedUser: MonoBehaviour {
     int score = -1; // not initialized
 
     private void Start() {
+        Debug.Log("ScoreOfNamedUser Start");
         if (!AuthenticationService.Instance.IsSignedIn) {
             enabled = false;
         }
     }
 
     public async void Initialize() {  // This is NOT called at sign-in - it is called after the user clicks "submit"
+        Debug.Log("ScoreOfNamedUser Initialize");
         if (!AuthenticationService.Instance.IsSignedIn) {
             Debug.LogError("Not signed in to AuthenticationService!");
             return;

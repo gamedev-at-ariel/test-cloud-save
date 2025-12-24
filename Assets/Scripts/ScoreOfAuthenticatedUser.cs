@@ -19,17 +19,19 @@ public class ScoreOfAuthenticatedUser : MonoBehaviour {
     private ScoreOfNamedUser scoreManager;
 
     void Start() {
-        // Show sign-in panel, hide game panel initially
-        if (signInPanel != null) signInPanel.SetActive(true);
-        if (gamePanel != null) gamePanel.SetActive(false);
+        Debug.Log("ScoreOfAuthenticatedUser Start");
 
-        // Subscribe to SignedIn event - must be done before sign-in happens
-        AuthenticationService.Instance.SignedIn += OnSignedIn;
-        Debug.Log("Subscribed to SignedIn event");
+        // Show sign-in panel, hide game panel initially
+        //if (signInPanel != null) signInPanel.SetActive(true);
+        //if (gamePanel != null) gamePanel.SetActive(false);
+
+        //// Subscribe to SignedIn event - must be done before sign-in happens
+        //AuthenticationService.Instance.SignedIn += Initialize;
+        //Debug.Log("Subscribed to SignedIn event");
     }
 
-    void OnSignedIn() {
-        Debug.Log("SignedIn event called");
+    void Initialize() {
+        Debug.Log("ScoreOfAuthenticatedUser Initialize");
         // Hide sign-in panel, show game panel
         if (signInPanel != null) signInPanel.SetActive(false);
         if (gamePanel != null) gamePanel.SetActive(true);
@@ -37,7 +39,7 @@ public class ScoreOfAuthenticatedUser : MonoBehaviour {
         // Initialize the score manager with the current username
         scoreManager = GetComponent<ScoreOfNamedUser>();
         if (!scoreManager) {
-            Debug.LogError("scoreManager is null in OnSignedIn!");
+            Debug.LogError("scoreManager is null!");
         } else {
             scoreManager.Initialize();
         }
@@ -61,13 +63,15 @@ public class ScoreOfAuthenticatedUser : MonoBehaviour {
         }
 
         Debug.Log(signInMessage);
-        statusField.text = signInMessage.Substring(0,40)+"...";
+        statusField.text = signInMessage;//.Substring(0,40)+"...";
 
         // Manually trigger initialization if sign-in was successful
         // This is a fallback in case the SignedIn event doesn't fire
         if (AuthenticationService.Instance.IsSignedIn) {
             Debug.Log("Manual initialization after sign-in");
-            OnSignedIn();
+            Initialize();
+        } else {
+            AuthenticationService.Instance.SignedIn += Initialize;
         }
     }
 
@@ -81,18 +85,20 @@ public class ScoreOfAuthenticatedUser : MonoBehaviour {
         }
 
         if (statusField != null) statusField.text = "Signing up...";
-        bool success = await authManager.SignUpWithUsernamePassword(username, password);
+        string message = await authManager.SignUpWithUsernamePassword(username, password);
 
-        if (success) {
+        if (message.Contains("success")) {
             if (statusField != null) statusField.text = "Sign up successful!";
             // Manually trigger initialization after successful sign-up
             // This is a fallback in case the SignedIn event doesn't fire
+            Debug.Log(message);
             if (AuthenticationService.Instance.IsSignedIn) {
                 Debug.Log("Manual initialization after sign-up");
-                OnSignedIn();
+                Initialize();
             }
         } else {
-            if (statusField != null) statusField.text = "Sign up failed. Username may already exist.";
+            if (statusField != null) statusField.text = message;
+            Debug.LogError(message);
         }
     }
 }
