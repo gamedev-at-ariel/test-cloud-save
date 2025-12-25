@@ -1,51 +1,68 @@
 using TMPro;
 using Unity.Services.Authentication;
+using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 
 /**
- * Handles username+password authentication and delegates score management to ScoreOfNamedUser
+ * Handles username+password authentication.
  */
-[RequireComponent(typeof(ScoreOfNamedUser))]
 public class ScoreOfAuthenticatedUser : MonoBehaviour {
     [SerializeField] TMP_InputField usernameInputField;
     [SerializeField] TMP_InputField passwordInputField;
     [SerializeField] TextMeshProUGUI statusField;
     [SerializeField] GameObject signInPanel;
     [SerializeField] GameObject gamePanel;
+    [SerializeField] TextMeshProUGUI textField;
+
     [SerializeField] AuthenticationManagerWithPassword authManager;
-    
-    private ScoreOfNamedUser scoreManager;
 
-    void Start() {
-        Debug.Log("ScoreOfAuthenticatedUser Start");
+    private int score;
 
-        // Show sign-in panel, hide game panel initially
+    void Awake() {
+        // This happens only when the object is activated!
+        Debug.Log("ScoreOfAuthenticatedUser Awake");
+
         //if (signInPanel != null) signInPanel.SetActive(true);
         //if (gamePanel != null) gamePanel.SetActive(false);
-
-        //// Subscribe to SignedIn event - must be done before sign-in happens
-        //AuthenticationService.Instance.SignedIn += Initialize;
-        //Debug.Log("Subscribed to SignedIn event");
     }
 
-    void Initialize() {
+    async void Initialize() {
+        //if (!AuthenticationService.Instance.IsSignedIn) {
+        //    Debug.LogError("Not signed in to AuthenticationService!");
+        //    return;
+        //}
         Debug.Log("ScoreOfAuthenticatedUser Initialize");
         // Hide sign-in panel, show game panel
+        statusField.gameObject.SetActive(false);
         if (signInPanel != null) signInPanel.SetActive(false);
         if (gamePanel != null) gamePanel.SetActive(true);
+        usernameInputField.readOnly = true;
+        passwordInputField.readOnly = true;
 
-        // Initialize the score manager with the current username
-        scoreManager = GetComponent<ScoreOfNamedUser>();
-        if (!scoreManager) {
-            Debug.LogError("scoreManager is null!");
+        string username = usernameInputField.text;
+        Debug.Log($"   username='{username}'");
+
+        int loadedScore;
+        var scoreData = await DatabaseManager.LoadData("score");
+        if (scoreData.TryGetValue("score", out var scoreVar)) {
+            loadedScore = scoreVar.Value.GetAs<int>();
+            Debug.Log($"loaded score value: {loadedScore}");
         } else {
-            scoreManager.Initialize();
+            loadedScore = 0;
+            Debug.Log($"no score value - initializing to {loadedScore}");
         }
+        SetScore(loadedScore);
+        gameObject.SetActive(true);
+        enabled = true;
+
+        await DatabaseManager.SaveData(("username", usernameInputField.text));
+        // Unity Cloud shows only PlayerID - not username. For debugging, we write the username manually.
     }
 
-    public async void OnSignInButtonClicked() {
+    enum ButtonType { REGISTER, LOGIN };
+
+    private async Task OnButtonClicked(ButtonType b) {
         string username = usernameInputField.text;
         string password = passwordInputField.text;
 
@@ -53,52 +70,49 @@ public class ScoreOfAuthenticatedUser : MonoBehaviour {
             statusField.text = "Please enter username and password";
             return;
         }
-
-        statusField.text = "Signing in...";
-        string signInMessage = null;
-        if (!authManager)        {
-            signInMessage = "authManager is null!";
-        } else        {
-            signInMessage = await authManager.SignInWithUsernamePassword(username, password);
-        }
-
-        Debug.Log(signInMessage);
-        statusField.text = signInMessage;//.Substring(0,40)+"...";
-
-        // Manually trigger initialization if sign-in was successful
-        // This is a fallback in case the SignedIn event doesn't fire
-        if (AuthenticationService.Instance.IsSignedIn) {
-            Debug.Log("Manual initialization after sign-in");
-            Initialize();
+        string message;
+        if (b == ButtonType.REGISTER) {
+            statusField.text = "Registering...";
+            message = await authManager.RegisterWithUsernameAndPassword(username, password);
         } else {
-            AuthenticationService.Instance.SignedIn += Initialize;
+            statusField.text = "Logging in...";
+            message = await authManager.LoginWithUsernameAndPassword(username, password);
         }
-    }
-
-    public async void OnSignUpButtonClicked() {
-        string username = usernameInputField.text;
-        string password = passwordInputField.text;
-
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)) {
-            if (statusField != null) statusField.text = "Please enter username and password";
-            return;
-        }
-
-        if (statusField != null) statusField.text = "Signing up...";
-        string message = await authManager.SignUpWithUsernamePassword(username, password);
+        statusField.text = message;
 
         if (message.Contains("success")) {
-            if (statusField != null) statusField.text = "Sign up successful!";
-            // Manually trigger initialization after successful sign-up
-            // This is a fallback in case the SignedIn event doesn't fire
             Debug.Log(message);
             if (AuthenticationService.Instance.IsSignedIn) {
-                Debug.Log("Manual initialization after sign-up");
+                Debug.Log("Already signed in: manual initialization");
                 Initialize();
+            } else {
+                Debug.Log("Not signed in yet: Initialize at SignedIn event");
+                AuthenticationService.Instance.SignedIn += Initialize;
             }
         } else {
-            if (statusField != null) statusField.text = message;
             Debug.LogError(message);
         }
     }
+
+    public async void OnSignInButtonClicked() {
+        await OnButtonClicked(ButtonType.LOGIN);
+    }
+
+    public async void OnSignUpButtonClicked() {
+        await OnButtonClicked(ButtonType.REGISTER);
+    }
+
+    void SetScore(int newscore) {
+        score = newscore;
+        textField.text = "Score: " + score;
+    }
+
+    public async void IncreaseScore() {
+        Debug.Log($"IncreaseScore: enabled={enabled}");
+        if (enabled) {
+            SetScore(score + 1);
+            await DatabaseManager.SaveData(("score", score));
+        }
+    }
+
 }

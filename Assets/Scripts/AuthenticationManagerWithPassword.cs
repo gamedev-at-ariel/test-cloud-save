@@ -11,6 +11,7 @@ public class AuthenticationManagerWithPassword : MonoBehaviour {
 
     // Initializing the Unity Services SDK
     async void Awake() {
+        Debug.Log("AuthenticationManagerWithPassword Awake");
         await UnityServices.InitializeAsync();
 
         if (AuthenticationService.Instance.IsSignedIn) {
@@ -21,30 +22,32 @@ public class AuthenticationManagerWithPassword : MonoBehaviour {
     }
 
     /**
-     * Sign up a new user with username and password
+     * Sign up a new user with username and password. 
+     * Return the success/error message.
      */
-    public async Task<string> SignUpWithUsernamePassword(string username, string password) {
+    public async Task<string> RegisterWithUsernameAndPassword(string username, string password) {
         try {
             await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
-            return ($"SignUp successful! Player ID: {AuthenticationService.Instance.PlayerId}");
+            return ($"Register successful! Player ID: {AuthenticationService.Instance.PlayerId}");
         } catch (AuthenticationException ex) {
-            return ($"SignUp failed: {ex.Message}");
+            return ($"Register failed: {ex.Message}");
         } catch (RequestFailedException ex) {
-            return ($"SignUp request failed: {ex.Message}");
+            return ($"Register request failed: {ex.Message}");
         }
     }
 
     /**
-     * Sign in an existing user with username and password
+     * Sign in an existing user with username and password.
+     * Return the success/error message.
      */
-    public async Task<string> SignInWithUsernamePassword(string username, string password) {
+    public async Task<string> LoginWithUsernameAndPassword(string username, string password) {
         try {
             await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
-            return $"SignIn successful! Player ID: {AuthenticationService.Instance.PlayerId}";
+            return $"Login successful! Player ID: {AuthenticationService.Instance.PlayerId}";
         } catch (AuthenticationException ex) {
-            return $"SignIn failed: {ex.Message}";
+            return $"Login failed: {ex.Message}";
         } catch (RequestFailedException ex) {
-            return $"SignIn request failed: {ex.Message}";
+            return $"Login request failed: {ex.Message}";
         }
     }
 
@@ -52,7 +55,7 @@ public class AuthenticationManagerWithPassword : MonoBehaviour {
      * Sign out the current user
      */
     public void SignOut() {
-        AuthenticationService.Instance.SignOut();
+        AuthenticationService.Instance.SignOut();  // this returns "void", so it cannot be awaited.
         Debug.Log("Player signed out");
     }
 }
